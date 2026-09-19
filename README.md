@@ -162,4 +162,6 @@ make
 
 ## License
 
-MIT — use it, fork it, learn from it.
+MIT License — see [LICENSE](LICENSE) for details.
+
+Feel free to use, modify, fork, and learn from this project.
