@@ -26,4 +26,15 @@ std::vector<Metrics> fcfs(std::vector<Process> processes);
 // interrupt it instead — that's a different algorithm, not covered here.)
 std::vector<Metrics> sjf(std::vector<Process> processes);
 
+// Preemptive: each dispatch runs a process for at most `quantum` time
+// units, then (if it isn't finished) sends it to the back of a FIFO
+// ready queue instead of letting it run to completion. This is what
+// actually creates the "many programs at once" illusion on one CPU.
+//
+// Quantum size is a real tradeoff: too large and it degenerates toward
+// FCFS; too small and (in a real OS) context-switch overhead would
+// dominate -- we don't model switch cost here, but it's why real
+// kernels don't use a quantum of 1.
+std::vector<Metrics> round_robin(std::vector<Process> processes, int quantum);
+
 } // namespace scheduler

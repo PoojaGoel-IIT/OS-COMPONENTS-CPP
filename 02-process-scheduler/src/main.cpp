@@ -64,5 +64,25 @@ int main() {
     assert(sjf_results[2].pid == 4 && sjf_results[2].completion_time == 17 && sjf_results[2].waiting_time == 9);
     assert(sjf_results[3].pid == 3 && sjf_results[3].completion_time == 26 && sjf_results[3].waiting_time == 15);
 
+    // Standard Round Robin textbook example, quantum = 2. Execution order
+    // (P1 slice, P2 slice, P3 slice, P1 slice, P4 slice, P2 slice, P1 slice)
+    // finishes processes in the order P3, P4, P2, P1 -- none of which
+    // matches FCFS or SJF order, which is exactly the point of preemption.
+    std::vector<Process> rr_processes = {
+        {1, 0, 5},
+        {2, 1, 4},
+        {3, 2, 2},
+        {4, 3, 1},
+    };
+
+    section("Round Robin (quantum = 2)");
+    auto rr_results = scheduler::round_robin(rr_processes, 2);
+    print_results(rr_results);
+
+    assert(rr_results[0].pid == 3 && rr_results[0].completion_time == 6  && rr_results[0].waiting_time == 2);
+    assert(rr_results[1].pid == 4 && rr_results[1].completion_time == 9  && rr_results[1].waiting_time == 5);
+    assert(rr_results[2].pid == 2 && rr_results[2].completion_time == 11 && rr_results[2].waiting_time == 6);
+    assert(rr_results[3].pid == 1 && rr_results[3].completion_time == 12 && rr_results[3].waiting_time == 7);
+
     std::printf("\nAll tests passed.\n");
 }
