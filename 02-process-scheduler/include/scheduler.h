@@ -19,4 +19,11 @@ struct Metrics {
 // as a local simulation log, without affecting the caller's list.
 std::vector<Metrics> fcfs(std::vector<Process> processes);
 
+// At every decision point, dispatches whichever arrived process has the
+// smallest burst_time. Non-preemptive: once a process starts, it runs
+// to completion even if a shorter job arrives while it's running.
+// (The preemptive variant, "Shortest Remaining Time First", would
+// interrupt it instead — that's a different algorithm, not covered here.)
+std::vector<Metrics> sjf(std::vector<Process> processes);
+
 } // namespace scheduler
