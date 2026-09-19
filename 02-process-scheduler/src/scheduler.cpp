@@ -148,4 +148,64 @@ std::vector<Metrics> round_robin(std::vector<Process> processes, int quantum) {
     return results;
 }
 
+std::vector<Metrics> priority_scheduling(std::vector<Process> processes, int aging_interval) {
+    const std::size_t n = processes.size();
+    std::vector<bool> done(n, false);
+    std::vector<Metrics> results;
+    results.reserve(n);
+
+    int clock = 0;
+
+    // Extracted so the aging formula only lives in one place -- if the two
+    // call sites below computed it separately, a fix to one and not the
+    // other would silently break tie-breaking.
+    auto effective_priority = [&](std::size_t i) {
+        int waited = clock - processes[i].arrival_time;
+        return processes[i].priority - waited / aging_interval;
+    };
+
+    for (std::size_t completed = 0; completed < n; ) {
+        // Pick the best effective priority among processes that have
+        // arrived by `clock`. Tie-break by earlier arrival: whichever
+        // process has been ready longer deserves the slot.
+        int best = -1;
+        for (std::size_t i = 0; i < n; ++i) {
+            if (done[i] || processes[i].arrival_time > clock) continue;
+            if (best == -1 ||
+                effective_priority(i) < effective_priority(static_cast<std::size_t>(best)) ||
+                (effective_priority(i) == effective_priority(static_cast<std::size_t>(best)) &&
+                 processes[i].arrival_time < processes[static_cast<std::size_t>(best)].arrival_time)) {
+                best = static_cast<int>(i);
+            }
+        }
+
+        if (best == -1) {
+            // Nothing has arrived yet: CPU is idle, fast-forward to the
+            // next arrival instead of scanning tick by tick.
+            int next_arrival = -1;
+            for (std::size_t i = 0; i < n; ++i) {
+                if (!done[i] && (next_arrival == -1 || processes[i].arrival_time < next_arrival))
+                    next_arrival = processes[i].arrival_time;
+            }
+            clock = next_arrival;
+            continue;
+        }
+
+        Process& p = processes[static_cast<std::size_t>(best)];
+        p.state = ProcessState::Running;
+        clock += p.burst_time;
+        p.remaining_time = 0;
+        p.state = ProcessState::Terminated;
+        done[static_cast<std::size_t>(best)] = true;
+        ++completed;
+
+        int completion = clock;
+        int turnaround = completion - p.arrival_time;
+        int waiting    = turnaround - p.burst_time;
+        results.push_back({p.pid, completion, turnaround, waiting});
+    }
+
+    return results;
+}
+
 } // namespace scheduler

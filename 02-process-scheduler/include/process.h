@@ -17,13 +17,15 @@ struct Process {
     int arrival_time;
     int burst_time;      // total CPU time this process needs
     int remaining_time;   // decremented as the scheduler runs it
+    int priority;          // lower value = higher priority (unused by FCFS/SJF/RR)
     ProcessState state;
 
-    Process(int pid, int arrival_time, int burst_time)
+    Process(int pid, int arrival_time, int burst_time, int priority = 0)
         : pid(pid),
           arrival_time(arrival_time),
           burst_time(burst_time),
           remaining_time(burst_time),
+          priority(priority),
           state(ProcessState::New) {}
 };
 

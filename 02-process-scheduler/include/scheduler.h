@@ -37,4 +37,14 @@ std::vector<Metrics> sjf(std::vector<Process> processes);
 // kernels don't use a quantum of 1.
 std::vector<Metrics> round_robin(std::vector<Process> processes, int quantum);
 
+// Non-preemptive: dispatches whichever arrived process has the best
+// (numerically smallest) *effective* priority, where
+//     effective = priority - (time waited so far) / aging_interval
+// A process's effective priority improves the longer it sits in the
+// ready set, which is what stops a low-priority process from being
+// starved forever by a steady stream of higher-priority arrivals.
+// Pass a very large aging_interval to disable aging and get plain
+// static-priority scheduling.
+std::vector<Metrics> priority_scheduling(std::vector<Process> processes, int aging_interval);
+
 } // namespace scheduler

@@ -84,5 +84,35 @@ int main() {
     assert(rr_results[2].pid == 2 && rr_results[2].completion_time == 11 && rr_results[2].waiting_time == 6);
     assert(rr_results[3].pid == 1 && rr_results[3].completion_time == 12 && rr_results[3].waiting_time == 7);
 
+    // Priority scheduling: P2 has the worst static priority (6) and
+    // arrives at t=0 alongside P1. P3 arrives later at t=4 with a
+    // better static priority (2) than P2's. Without aging, P3 keeps
+    // cutting in front of P2 every time -- classic starvation. With
+    // aging_interval=1, P2's effective priority improves by 1 for every
+    // tick it waits, so by t=4 it has caught up to P3 and the earlier-
+    // arrival tie-break lets it go first instead.
+    std::vector<Process> priority_processes_noaging = {
+        {1, 0, 4, 1},
+        {2, 0, 4, 6},
+        {3, 4, 4, 2},
+    };
+    std::vector<Process> priority_processes_aging = priority_processes_noaging;
+
+    section("Priority scheduling (no aging)");
+    auto prio_noaging = scheduler::priority_scheduling(priority_processes_noaging, 1'000'000);
+    print_results(prio_noaging);
+
+    assert(prio_noaging[0].pid == 1 && prio_noaging[0].waiting_time == 0);
+    assert(prio_noaging[1].pid == 3 && prio_noaging[1].waiting_time == 0);
+    assert(prio_noaging[2].pid == 2 && prio_noaging[2].waiting_time == 8); // starved
+
+    section("Priority scheduling (aging_interval = 1)");
+    auto prio_aging = scheduler::priority_scheduling(priority_processes_aging, 1);
+    print_results(prio_aging);
+
+    assert(prio_aging[0].pid == 1 && prio_aging[0].waiting_time == 0);
+    assert(prio_aging[1].pid == 2 && prio_aging[1].waiting_time == 4); // aging rescued it
+    assert(prio_aging[2].pid == 3 && prio_aging[2].waiting_time == 4);
+
     std::printf("\nAll tests passed.\n");
 }
